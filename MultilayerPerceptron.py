@@ -59,7 +59,7 @@ class MultiLayerPerceptron:
             string = "Details of the Multilayer Perceptron:\n" \
                      " Layers: {}\n" \
                      " Structural overview: {} (# neurons/layer)\n" \
-                     " Input dimensionality: {}\n" \
+                     " inpt dimensionality: {}\n" \
                      " Global defaults:\n" \
                      "    Weight type: {}\n" \
                      "    Epsilon: {}\n" \
@@ -86,21 +86,21 @@ class MultiLayerPerceptron:
 
     def _init_weights(self, w):
         """
-        Checks if input global weight type is valid; creating weights is the _create_weights function
+        Checks if inpt global weight type is valid; creating weights is the _create_weights function
         :param w:
         :return desired weight initialization:
         """
         possible_weights = ['normal', 'trunc', 'ones', 'zeros', 'uniform']
         if w not in possible_weights:
             raise ValueError("Invalid global weight type.  "
-                             "Input: '{}'; Required: 'normal','trunc','ones',zeros', or 'uniform'.".format(w))
+                             "inpt: '{}'; Required: 'normal','trunc','ones',zeros', or 'uniform'.".format(w))
         else:
             return w
 
 
     def _create_weights(self, w, dim_in, size):
         """
-        Creates a weight matrix based on the input dimensionality and the number of neurons.  Adds bias dimension
+        Creates a weight matrix based on the inpt dimensionality and the number of neurons.  Adds bias dimension
         :param w:
         :param dim_in:
         :param size:
@@ -121,19 +121,19 @@ class MultiLayerPerceptron:
             return np.random.uniform(-1,1,(dim_in + 1, size))
         else:
             raise ValueError("Invalid weight initialization type.  "
-                             "Input: '{}'; Required: 'normal','trunc','ones',zeros', or 'uniform'.".format(w))
+                             "inpt: '{}'; Required: 'normal','trunc','ones',zeros', or 'uniform'.".format(w))
 
 
     def _init_activation(self, a):
         """
-        Checks if input activation type is valid
+        Checks if inpt activation type is valid
         :param a:
         :return desired function:
         """
         possible_activations = ['sigmoid', 'tanh', 'linear', 'relu']
         if a not in possible_activations:
             raise ValueError("Invalid global activation function.  "
-                             "Input: '{}'; Required: 'sigmoid','tanh','linear', or 'relu'.".format(a))
+                             "inpt: '{}'; Required: 'sigmoid','tanh','linear', or 'relu'.".format(a))
         else:
             return a
 
@@ -156,7 +156,7 @@ class MultiLayerPerceptron:
             return np.vectorize(lambda x: x if x > 0 else 0)
         else:
             raise ValueError("Invalid activation function.  "
-                             "Input: '{}'; Required: 'sigmoid','tanh','linear', or 'relu'.".format(request))
+                             "inpt: '{}'; Required: 'sigmoid','tanh','linear', or 'relu'.".format(request))
 
 
     def _get_derivative(self, func):
@@ -177,7 +177,7 @@ class MultiLayerPerceptron:
             return lambda output, target: -(output - target) #is the negtive necessary
         else:
             raise ValueError("Invalid activation function to generate derivative.  "
-                             "Input: '{}'; Required: 'sigmoid','tanh','linear', 'relu', or 'error'.".format(func))
+                             "inpt: '{}'; Required: 'sigmoid','tanh','linear', 'relu', or 'error'.".format(func))
 
 
     def _get_epsilon(self, request):
@@ -206,15 +206,15 @@ class MultiLayerPerceptron:
         :return:
         """
         epsilon = self._get_epsilon(epsilon)
-        if len(self.layer_weights) == 0:  # if first layer, make sure there is input dimensionality provided
+        if len(self.layer_weights) == 0:  # if first layer, make sure there is inpt dimensionality provided
             if dim_in == None:
                 raise ValueError("You are creating the first layer of the network.  "
-                                 "Please provide the input dimensionality with 'dim_in'")
+                                 "Please provide the inpt dimensionality with 'dim_in'")
             else:
                 weights = self._create_weights(weight_type, dim_in, size)
         else:
-            input_dimensionality = self.layer_sizes[-1]  # returns the number of outputs of the previous layer
-            weights = self._create_weights(weight_type, input_dimensionality, size)
+            inpt_dimensionality = self.layer_sizes[-1]  # returns the number of outputs of the previous layer
+            weights = self._create_weights(weight_type, inpt_dimensionality, size)
 
         # update layer information storage
         self.layer_weights.append(weights)
@@ -234,7 +234,7 @@ class MultiLayerPerceptron:
 
     def _add_bias(self, v):
         """
-        Takes in an input vector, adds a bias of 1 to the front of it, and then expands dimensions to avoid:
+        Takes in an inpt vector, adds a bias of 1 to the front of it, and then expands dimensions to avoid:
         (3,) vs. (1,3)
         :param v:
         :return vector with bias and proper dimensionality:
@@ -251,21 +251,24 @@ class MultiLayerPerceptron:
         raise NotImplementedError
 
 
-    def _forward_step(self, layer, input):
+    def _forward_step(self, layer, inpt):
         """
-        Calculates the given layer's output given an input
+        Calculates the given layer's output given an inpt
         :param layer:
-        :param input:
+        :param inpt:
         :return layer output:
         """
         if layer == 0:
-            print("SAVING ORIGINAL INPUT+BIAS")
-            self.input = self._add_bias(input)
-        print("THE INPUT:\n", self._add_bias(input))
-        print("THE WEIGHTS:\n", self.layer_weights[layer])
-        sums = np.dot(self.input, self.layer_weights[layer])
-        print("THE SUMS:\n", sums)
-        print("THE SUMS DIMS:\n",sums.shape)
+            # print("SAVING ORIGINAL inpt+BIAS")
+            self.input = self._add_bias(inpt)
+            sums = np.dot(self.input, self.layer_weights[layer])
+        else:
+        	inpt = self._add_bias(inpt)
+        	sums = np.dot(inpt, self.layer_weights[layer])
+        # print("THE inpt:\n", self._add_bias(inpt))
+        # print("THE WEIGHTS:\n", self.layer_weights[layer])
+        # print("THE SUMS:\n", sums)
+        # print("THE SUMS DIMS:\n",sums.shape)
         activation_function = self._get_activation_func(self.layer_activation_funcs[layer])
         # output = []
         output = activation_function(sums)
@@ -282,15 +285,15 @@ class MultiLayerPerceptron:
         return output
 
 
-    def _feedforward(self, input):
+    def _feedforward(self, inpt):
         """
-        Propagates an input through the network to get the network's result, to be fed into backprop.
+        Propagates an inpt through the network to get the network's result, to be fed into backprop.
         Exact copy of _predict, but in the proper function section and with an easier to understand name in its
         context, as well as no return.
-        :param input:
+        :param inpt:
         """
         for layer in range(len(self.layer_sizes)):
-            input = self._forward_step(layer, input)
+            inpt = self._forward_step(layer, inpt)
 
 
     def _calculate_error(self, output, target):
@@ -301,15 +304,15 @@ class MultiLayerPerceptron:
         :return error:
         """
         # so this should be a sum, where it sums over one item in the stochastic case, because it'll be a [1], but in the batch case
-        # it should be a list of numbers (inputs that were sent through) that it iterates through
+        # it should be a list of numbers (inpts that were sent through) that it iterates through
         # error = np.mean([.5 * (target - sample) ** 2 for sample in output])
-        # shouldn't need to be! the whole batch should be input at once
+        # shouldn't need to be! the whole batch should be inpt at once
         error = np.sum(.5 * (target - output)**2)
         self.errors.append(error)
         return error
 
 
-    def _backpropagate(self, target, input):
+    def _backpropagate(self, target, inpt):
         """
         Backpropagates the error through all the layers in one function call (as opposed to _feedforward which
         must be repeated)
@@ -321,41 +324,69 @@ class MultiLayerPerceptron:
         print("BACKPRAAAAAPPPPPPPPPPPPPPP")
         def last_layer_backprop(tgt):
             derivative_function = self._get_derivative(self.layer_activation_funcs[-1])
-            delta = -np.dot(self.layer_logits[-2].T, np.multiply((tgt - self.layer_outputs[-1]), derivative_function(self.layer_logits[-1])))
+            y_minus_y = tgt - self.layer_outputs[-1]
+            neg_activation_derv = -derivative_function(self.layer_logits[-1])
+            tranposed_prev_activation = self.layer_outputs[-2].T
+            right_hand_term = y_minus_y * neg_activation_derv
+            delta = np.dot(tranposed_prev_activation, right_hand_term)
+            # delta = np.dot(self.layer_outputs[-2].T, np.multiply((tgt - self.layer_outputs[-1]), -derivative_function(self.layer_logits[-1])))
+            print("LAST LAYER DELT\n", delta)
+            print("LAST LAYER WEIGHTS\n", self.layer_weights[-1])
             return delta
-        def hidden_layer_backprop(tgt, inpt):
+        def hidden_layer_backprop(start, tgt, inpt):
             deltas_backward = []
+            delta = start
             for i in reversed(range(len(self.layer_logits) - 1)): # because we already did the last layer
-                derivative_function = self._get_derivative(self.layer_activation_funcs[i])
-                delta = (tgt - self.layer_outputs[-1])  # this increases in length completely right? so wouldn't it be better to do in in another loop, as parts?
+                print("JACOB LAYER:", i)
+                if i == 0:
+                	print("FIRST LAYER")
+                	derivative_function = self._get_derivative(self.layer_activation_funcs[i])
+                	delta *= np.dot(self.layer_weights[i], derivative_function(self.input))
+                else:
+	                derivative_function = self._get_derivative(self.layer_activation_funcs[i])
+	                delta *= np.dot(self.layer_weights[i], derivative_function(self.layer_logits[i]))
                 deltas_backward.append(delta)
+            return deltas_backward
 
-
+        last_delt = last_layer_backprop(target)
+        deltas_backward = hidden_layer_backprop(last_delt, target, inpt)
 
         print("FERTIG")
-        # self._descend_gradient(input, deltas_backwards, changes_backwards)
+        self._descend_gradient(deltas_backward)
 
 
-    def _descend_gradient(self, deltas, changes, GRAD):
+    def _descend_gradient(self, deltas):
         """
         Updates the weights of all layers with the DELTAS???? computed in the backprop step.
         :param deltas:
         :param changes:
         :param GRAD:
         """
-        for layer in range(2, len(self.layer_sizes)):
-            print("DESCENDING")
-            epsilon = self.layer_epsilons[-layer]
-            gradient = epsilon * GRAD[-layer]
-            print(gradient)
-            print(self.layer_weights[-layer])
-            self.layer_weights[-layer] = self.layer_weights[-layer] - gradient
-            print(self.layer_weights[-layer])
+        print("\n\n\nFOLLOWING IS SHAPES OF WEIGHTS AND THEIR DELTAS")
+        for i in range(len(self.layer_weights)):
+        	print(self.layer_weights[i].shape, deltas[-i].shape)
+        for layer in reversed(range(len(self.layer_logits))):
+        	layer -= 1 # cause index at 0 means last element position is 1 less than length
+        	print("DESCENDING2")
+        	epsilon = self.layer_epsilons[layer]
+        	print("LAYER:",layer,'\nLEN DELTAS:', len(deltas))
+        	gradient = epsilon * deltas[layer]
+        	print("BEFORE",self.layer_weights[layer])
+        	self.layer_weights[layer] = self.layer_weights[layer] - gradient
+        	print("\n\nAFTER:",self.layer_weights[layer])
+        # for layer in range(2, len(self.layer_sizes)):
+        #     print("DESCENDING")
+        #     epsilon = self.layer_epsilons[-layer]
+        #     gradient = epsilon * GRAD[-layer]
+        #     print(gradient)
+        #     print(self.layer_weights[-layer])
+        #     self.layer_weights[-layer] = self.layer_weights[-layer] - gradient
+        #     print(self.layer_weights[-layer])
             # self.
         # deltas = list(reversed(deltas))
         # for l in range(len(self.layer_sizes)):
         #     print("LAYER", l)
-        #     gradient = self.layer_epsilons[l] * deltas[l] * [self.layer_outputs[l-1] if l > 0 else input]
+        #     gradient = self.layer_epsilons[l] * deltas[l] * [self.layer_outputs[l-1] if l > 0 else inpt]
         #     print("GRADIENT:\n",gradient)
         #     print("GRADIENTshape:\n",gradient.shape)
         #     print(self.layer_weights[l])
@@ -364,25 +395,25 @@ class MultiLayerPerceptron:
         # # self.layer_weights[layer]
 
 
-    def learn(self, input, target, repitions):
+    def learn(self, inpt, target, repitions):
         #PSEUDOCODE
         for r in repitions:
-            self._feedforward(input)
-            self._backpropagate(target, input)
+            self._feedforward(inpt)
+            self._backpropagate(target, inpt)
             # self._descend_gradient(x,y,z)
 
     ##############---Training Functions---##############
     ################ Data Processing Functions ################
 
-    def predict(self, input):
+    def predict(self, inpt):
         """
-        Propagates an input through the network to get the network's result, without doing the backprop step.
-        :param input:
+        Propagates an inpt through the network to get the network's result, without doing the backprop step.
+        :param inpt:
         :return prediction:
         """
         for layer in range(len(self.layer_sizes)):
-            input = self._forward_step(layer, input)
-        prediction = input  # just for clarification sake
+            inpt = self._forward_step(layer, inpt)
+        prediction = inpt  # just for clarification sake
         return prediction
 
     ##############---Data Processing Functions---##############
@@ -440,10 +471,10 @@ class MultiLayerPerceptron:
 
 
 if __name__ == "__main__":
-    # inputs = np.array([[0,0,1],[1,1,1],[1,0,1],[0,1,1]])
+    # inpts = np.array([[0,0,1],[1,1,1],[1,0,1],[0,1,1]])
     #start debugging
-    inputs = np.array([[0,0],[0,1],[1,0],[1,1]])
-    print(inputs)
+    inpts = np.array([[0,0],[0,1],[1,0],[1,1]])
+    print(inpts)
     outputs = np.array([[0],[1],[1],[0]])
     print(outputs)
     NeuralNet = MultiLayerPerceptron('relu',.001,'ones')
@@ -454,14 +485,14 @@ if __name__ == "__main__":
     print("DEBUG")
     # print(NeuralNet.layer_weights[0])
     first = NeuralNet.layer_weights
-    input = inputs[0]
+    inpt = inpts[0]
     for l in range(len(NeuralNet.layer_weights)):
         print("Stepping forward for layer:",l+1)
-        input = NeuralNet._forward_step(l, input)
+        inpt = NeuralNet._forward_step(l, inpt)
     # print(NeuralNet.layer_outputs)
 
     output = outputs[0]
-    NeuralNet._backpropagate(inputs[0], output)
+    NeuralNet._backpropagate(inpts[0], output)
     last = NeuralNet.layer_weights
 
     print("\n\n\nFIRST{}\n\n\n\nLAST{}".format(first, last))
