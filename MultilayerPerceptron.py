@@ -12,7 +12,6 @@ from datetime import datetime as dt
 # from testdata import ToyData
 from scipy.special import expit as sigmoid
 
-# what I learned: build it simple first then add feautures; don't try to debug on a complex system to get the simplest model to work
 #TODO: Allow for custom activation function
 #TODO: Error functions?
 #TODO: Momentum?
@@ -388,7 +387,7 @@ class MultiLayerPerceptron:
 
     ##############---Data Processing Functions---##############
     ############## Save/Load Functions ##############
-    def save(self, name=None, date=True):
+    def save(self, name='savednetwork', date=True):
         """
         Saves the current network structure and weights.  Can take in a specified name to save the file as, otherwise
         it is called "savednetwork".
@@ -406,28 +405,16 @@ class MultiLayerPerceptron:
         ls = self.layer_sizes
         network_packed = [gwt, ge, gaf, lw, lwt, laf, le, ls]
 
-        if isinstance(name, str):
-            if date:
-                date = dt.today().isoformat()[:19]
-                date = date.replace(':','-')
-                f = open(name+date+'.pkl', 'wb')
-                pickle.dump(network_packed, f, -1)
-                f.close()
-            else:
-                f = open(name+'.pkl', 'wb')
-                pickle.dump(network_packed, f, -1)
-                f.close()
+        if date:
+            date = dt.today().isoformat()[:19]
+            date = date.replace(':','-')
+            f = open(name+date+'.pkl', 'wb')
+            pickle.dump(network_packed, f, -1)
+            f.close()
         else:
-            if date:
-                date = dt.today().isoformat()[:19]
-                date = date.replace(':', '-')
-                f = open('savednetwork'+date+'.pkl', 'wb')
-                pickle.dump(network_packed, f, -1)
-                f.close()
-            else:
-                f = open('savednetwork.pkl', 'wb')
-                pickle.dump(network_packed, f, -1)
-                f.close()
+            f = open(name+'.pkl', 'wb')
+            pickle.dump(network_packed, f, -1)
+            f.close()
 
 
     def load(self, file):
@@ -494,8 +481,3 @@ if __name__ == "__main__":
     # print("2:\n",NeuralNet2)
     # NeuralNet2.load('savednetwork.pkl')
     # print("2LOAD:\n", NeuralNet2)
-
-'''
-So I need to make it impervious to batch size.  It should always work out through the matrix math
-https://iamtrask.github.io/2015/07/12/basic-python-network/
-'''
